@@ -69,9 +69,9 @@ def check_map(map):
         return 1
     return 0
 
-if __name__=='__main__':
+def game():
     pygame.init()
-    screen = pygame.display.set_mode((1600, 1000))
+    screen = pygame.display.set_mode((1920, 1080))
     screen.fill((255, 255, 255))
 
     run = True
@@ -90,7 +90,7 @@ if __name__=='__main__':
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                return False
         
         keys = pygame.key.get_pressed()
         if pygame.time.get_ticks() - last_moved >= 250:
@@ -114,3 +114,4 @@ if __name__=='__main__':
         draw_map(screen, map_table, map)
         screen.blit(player_table[0], player_pos)
         pygame.display.flip()
+    return True
