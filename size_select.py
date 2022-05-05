@@ -1,8 +1,38 @@
+from operator import ne
 from tabnanny import check
 import pygame
 import pygame.locals
 import jeu
+import map_editor
+import numpy as np
 
+## Fonction permettant de créer une map vierge à l'aide de dimensions données
+## IN:
+## text_height:     String contenant l'entrée utilisateur représentant la hauteur de la map
+## text_width:      String contenant l'entrée utilisateur représentant la largeur de la map
+##
+## OUT:
+## new_map:         map vierge crée par la fonction
+def create_map(text_height, text_width):
+    height = int(text_height)
+    width = int(text_width)
+    new_map = [[0 for x in range(height)] for y in range(width)]
+
+    for x, row in enumerate(new_map):
+        for y in enumerate(row):
+            new_map[x][y[0]] = '3'
+
+    return(new_map)
+
+
+## Fonction vérifiant que les données passées par l'utilisateur sont valides
+## IN:
+## height:          String contenant l'entrée utilisateur représentant la hauteur de la map
+## width:           String contenant l'entrée utilisateur représentant la largeur de la map
+##
+## OUT:
+## False:           les valeurs entrées ne sont pas valides
+## True:            les valeurs entrées sont valides
 def check_values(height, width):
     check_height = 0
     check_width = 0
@@ -20,6 +50,13 @@ def check_values(height, width):
 
     return True
 
+## Fonction contenant la boucle de selection des dimensions de la map
+## IN:
+## screen:          écran sur lequel on affiche nos différentes images
+##
+## OUT:
+## False:           il y'a eu une erreur, ou la fenêtre a été fermée
+## True:            l'utilsateur a fini de créer sa map
 def size_select(screen):
     screen.fill((255, 255, 255))
 
@@ -89,7 +126,7 @@ def size_select(screen):
             screen.blit(butt_quit[0], (50, 930))
         if pos[0] >= 1270 and pos[0] <= 1870 and pos[1] >= 930 and pos[1] <= 1030:
             if mouse[0] and check_values(height_text, width_text):
-                print("SBOUER")
+                run = map_editor.map_editor(screen, create_map(height_text, width_text))
             screen.blit(butt_create[1], (1270, 930))
         else:
             screen.blit(butt_create[0], (1270, 930))

@@ -1,6 +1,7 @@
 from nbformat import read
 import pygame
 import pygame.locals
+from scipy.fftpack import shift
 
 ## Fonction permettant de créer une TileMap à partir d'une image
 ## IN:
@@ -28,14 +29,14 @@ def load_tiles(filename, width: int, height: int):
 ##
 ## OUT:
 ## player_pos: coordonée de la case entrée de la map
-def draw_map(screen, tile_table, map):
+def draw_map(screen, tile_table, map, shift):
     player_pos = [0, 0]
 
     for x, row in enumerate(map):
         for y in enumerate(row):
             if int(y[1]) == 0:
                 player_pos = [y[0]*50, x*50]
-            screen.blit(tile_table[int(y[1])], (y[0]*50, x*50))
+            screen.blit(tile_table[int(y[1])], (y[0]*50 + shift[0], x*50 + shift[1]))
     return player_pos
 
 ## Fonction permettant de vérifier si la map donnée est valide
@@ -69,8 +70,17 @@ def check_map(map):
         return 1
     return 0
 
+## Fonction contenant la boucle de jeu
+## IN:
+## screen:          écran sur lequel on affiche nos différentes images
+##
+## OUT:
+## False:           il y'a eu une erreur, ou la fenêtre a été fermée
+## True:            le niveau a été réussi
 def game(screen):
     screen.fill((255, 255, 255))
+
+    shift = (100, 100)
 
     run = True
 
@@ -83,7 +93,7 @@ def game(screen):
     map_table = load_tiles("Tiles.png", 50, 50)
     player_table = load_tiles("Perso.png", 50, 50)
 
-    player_pos = draw_map(screen, map_table, map)
+    player_pos = draw_map(screen, map_table, map, (100, 100))
 
     while run:
         for event in pygame.event.get():
@@ -109,7 +119,7 @@ def game(screen):
             run = False
             print("VICTOIRE")
 
-        draw_map(screen, map_table, map)
-        screen.blit(player_table[0], player_pos)
+        draw_map(screen, map_table, map, shift)
+        screen.blit(player_table[0], (player_pos[0] + shift[0], player_pos[1] + shift[1]))
         pygame.display.flip()
     return True

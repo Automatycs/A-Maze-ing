@@ -1,8 +1,9 @@
 import pygame
 import pygame.locals
 import jeu
-import my_size_select
+import size_select
 
+## Fonction contenant la boucle principale du menu
 if __name__=='__main__':
     pygame.init()
     pygame.font.init()
@@ -39,7 +40,7 @@ if __name__=='__main__':
             screen.blit(butt_play[0], (740, 350))
         if pos[0] >= 740 and pos[1] >= 550 and pos[0] <= 1340 and pos[1] <= 650:
             if mouse[0]:
-                run = my_size_select.size_select(screen)
+                run = size_select.size_select(screen)
             screen.blit(butt_create[1], (740, 550))
         else:
             screen.blit(butt_create[0], (740, 550))
