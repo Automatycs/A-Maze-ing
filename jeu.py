@@ -34,8 +34,8 @@ def draw_map(screen, tile_table, map):
     for x, row in enumerate(map):
         for y in enumerate(row):
             if int(y[1]) == 0:
-                player_pos = [y[0]*100, x*100]
-            screen.blit(tile_table[int(y[1])], (y[0]*100, x*100))
+                player_pos = [y[0]*50, x*50]
+            screen.blit(tile_table[int(y[1])], (y[0]*50, x*50))
     return player_pos
 
 ## Fonction permettant de vérifier si la map donnée est valide
@@ -69,9 +69,7 @@ def check_map(map):
         return 1
     return 0
 
-def game():
-    pygame.init()
-    screen = pygame.display.set_mode((1920, 1080))
+def game(screen):
     screen.fill((255, 255, 255))
 
     run = True
@@ -82,8 +80,8 @@ def game():
     
     last_moved = pygame.time.get_ticks()
 
-    map_table = load_tiles("Tiles.png", 100, 100)
-    player_table = load_tiles("Perso.png", 100, 100)
+    map_table = load_tiles("Tiles.png", 50, 50)
+    player_table = load_tiles("Perso.png", 50, 50)
 
     player_pos = draw_map(screen, map_table, map)
 
@@ -94,20 +92,20 @@ def game():
         
         keys = pygame.key.get_pressed()
         if pygame.time.get_ticks() - last_moved >= 250:
-            if (keys[pygame.K_RIGHT] and map[int(player_pos[1] / 100)][int(player_pos[0] / 100 + 1)] != '2'):
-                player_pos[0] += 100
+            if (keys[pygame.K_RIGHT] and map[int(player_pos[1] / 50)][int(player_pos[0] / 50 + 1)] != '2'):
+                player_pos[0] += 50
                 last_moved = pygame.time.get_ticks()
-            elif (keys[pygame.K_LEFT] and map[int(player_pos[1] / 100)][int(player_pos[0] / 100 - 1)] != '2'):
-                player_pos[0] -= 100
+            elif (keys[pygame.K_LEFT] and map[int(player_pos[1] / 50)][int(player_pos[0] / 50 - 1)] != '2'):
+                player_pos[0] -= 50
                 last_moved = pygame.time.get_ticks()
-            elif (keys[pygame.K_DOWN] and map[int(player_pos[1] / 100 + 1)][int(player_pos[0] / 100)] != '2'):
-                player_pos[1] += 100
+            elif (keys[pygame.K_DOWN] and map[int(player_pos[1] / 50 + 1)][int(player_pos[0] / 50)] != '2'):
+                player_pos[1] += 50
                 last_moved = pygame.time.get_ticks()
-            elif (keys[pygame.K_UP] and map[int(player_pos[1] / 100 - 1)][int(player_pos[0] / 100)] != '2'):
-                player_pos[1] -= 100
+            elif (keys[pygame.K_UP] and map[int(player_pos[1] / 50 - 1)][int(player_pos[0] / 50)] != '2'):
+                player_pos[1] -= 50
                 last_moved = pygame.time.get_ticks()
 
-        if map[int(player_pos[1] / 100)][int(player_pos[0] / 100)] == '1':
+        if map[int(player_pos[1] / 50)][int(player_pos[0] / 50)] == '1':
             run = False
             print("VICTOIRE")
 
