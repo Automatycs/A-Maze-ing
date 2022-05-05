@@ -1,6 +1,24 @@
+from tabnanny import check
 import pygame
 import pygame.locals
 import jeu
+
+def check_values(height, width):
+    check_height = 0
+    check_width = 0
+
+    if not height.isdigit() or not width.isdigit():
+        return False
+    check_height = int(height)
+    check_width = int(width)
+
+    if check_height <= 1 or check_height > 35:
+        return False
+    
+    if check_width <= 1 or check_width > 18:
+        return False
+
+    return True
 
 def size_select(screen):
     screen.fill((255, 255, 255))
@@ -70,6 +88,8 @@ def size_select(screen):
         else:
             screen.blit(butt_quit[0], (50, 930))
         if pos[0] >= 1270 and pos[0] <= 1870 and pos[1] >= 930 and pos[1] <= 1030:
+            if mouse[0] and check_values(height_text, width_text):
+                print("SBOUER")
             screen.blit(butt_create[1], (1270, 930))
         else:
             screen.blit(butt_create[0], (1270, 930))
