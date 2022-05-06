@@ -126,7 +126,7 @@ def size_select(screen):
             screen.blit(butt_quit[0], (50, 930))
         if pos[0] >= 1270 and pos[0] <= 1870 and pos[1] >= 930 and pos[1] <= 1030:
             if mouse[0] and check_values(height_text, width_text):
-                run = map_editor.map_editor(screen, create_map(height_text, width_text))
+                run = map_editor.map_editor(screen, create_map(height_text, width_text), (int(height_text), int(width_text)))
             screen.blit(butt_create[1], (1270, 930))
         else:
             screen.blit(butt_create[0], (1270, 930))
