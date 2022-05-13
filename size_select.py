@@ -1,10 +1,9 @@
-from operator import ne
-from tabnanny import check
 import pygame
 import pygame.locals
+from pymysql import NULL
 import jeu
 import map_editor
-import numpy as np
+import models
 
 ## Fonction permettant de créer une map vierge à l'aide de dimensions données
 ## IN:
@@ -16,11 +15,14 @@ import numpy as np
 def create_map(text_height, text_width):
     height = int(text_height)
     width = int(text_width)
-    new_map = [[0 for x in range(height)] for y in range(width)]
+    new_map = []
+    txt = ""
 
-    for x, row in enumerate(new_map):
-        for y in enumerate(row):
-            new_map[x][y[0]] = '3'
+    for x in range(width):
+        for y in range(height):
+            txt += "3"
+        new_map.append(txt)
+        txt = ""
 
     return(new_map)
 
@@ -57,29 +59,33 @@ def check_values(height, width):
 ## OUT:
 ## False:           il y'a eu une erreur, ou la fenêtre a été fermée
 ## True:            l'utilsateur a fini de créer sa map
-def size_select(screen):
+def size_select(screen, session, creator):
     screen.fill((255, 255, 255))
+
+    map = models.Map()
+    map.map_creator = creator
+    map.map_name = ""
 
     width_selected = False
     height_selected = False
 
-    input_tile = jeu.load_tiles("Input_Space.png", 300, 100)
+    input_tile = jeu.load_tiles("sprites/Input_Space.png", 300, 100)
 
     my_font = pygame.font.SysFont('arial', 70)
 
     height_text = ""
     width_text = ""
 
-    rules_height = my_font.render("Hauteur (max 35)", False, (255, 255, 255))
-    rules_width = my_font.render("Largeur (max 18)", False, (255 ,255, 255))
+    rules_height = my_font.render("Largeur (max 35)", False, (255, 255, 255))
+    rules_width = my_font.render("Hauteur (max 18)", False, (255, 255, 255))
     height_surface = my_font.render(height_text, False, (0, 0, 0))
     width_surface = my_font.render(width_text, False, (0, 0, 0))
 
     run = True
 
-    menu_font = jeu.load_tiles("Menu.jpg", 1920, 1080)
-    butt_quit = jeu.load_tiles("Boutton_Quitter.jpg", 600, 100)
-    butt_create = jeu.load_tiles("Boutton_Créer.jpg", 600, 100)
+    menu_font = jeu.load_tiles("sprites/Menu.jpg", 1920, 1080)
+    butt_quit = jeu.load_tiles("sprites/Boutton_Quitter.jpg", 600, 100)
+    butt_create = jeu.load_tiles("sprites/Boutton_Créer.jpg", 600, 100)
 
     mouse = None
     pos = (0, 0)
@@ -92,12 +98,20 @@ def size_select(screen):
                 if height_selected:
                     if event.key == pygame.K_BACKSPACE:
                         height_text = height_text[:-1]
+                    elif event.key == pygame.K_RETURN:
+                        if height_text != "":
+                            height_selected = False
+                            width_selected = True
                     else:
                         height_text += event.unicode
                 height_surface = my_font.render(height_text, False, (0, 0, 0))
                 if width_selected:
                     if event.key == pygame.K_BACKSPACE:
                         width_text = width_text[:-1]
+                    elif event.key == pygame.K_RETURN:
+                        if width_text != "" and check_values(height_text, width_text):
+                            map.map_layout = map_editor.to_string(create_map(height_text, width_text))
+                            run = map_editor.map_editor(screen, session, map, True)
                     else:
                         width_text += event.unicode
                 width_surface = my_font.render(width_text, False, (0, 0, 0))
@@ -126,7 +140,7 @@ def size_select(screen):
             screen.blit(butt_quit[0], (50, 930))
         if pos[0] >= 1270 and pos[0] <= 1870 and pos[1] >= 930 and pos[1] <= 1030:
             if mouse[0] and check_values(height_text, width_text):
-                run = map_editor.map_editor(screen, create_map(height_text, width_text), (int(height_text), int(width_text)))
+                run = map_editor.map_editor(screen, session, create_map(height_text, width_text), (int(height_text), int(width_text)), creator)
             screen.blit(butt_create[1], (1270, 930))
         else:
             screen.blit(butt_create[0], (1270, 930))
@@ -142,6 +156,9 @@ def size_select(screen):
         
         screen.blit(height_surface, (900, 410))
         screen.blit(width_surface, (900, 610))
+
+        screen.blit(rules_height, (900, 330))
+        screen.blit(rules_width, (900, 530))
         
         pygame.display.flip()
     return True

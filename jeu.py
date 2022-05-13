@@ -1,7 +1,7 @@
 from nbformat import read
+from numpy import size
 import pygame
 import pygame.locals
-from scipy.fftpack import shift
 
 ## Fonction permettant de créer une TileMap à partir d'une image
 ## IN:
@@ -11,8 +11,11 @@ from scipy.fftpack import shift
 ##
 ## OUT:
 ## tile_table:  TileMap créer par la fonction
-def load_tiles(filename, width: int, height: int):
-    image = pygame.image.load(filename).convert()
+def load_tiles(filename, width: int, height: int, transparency=False):
+    if  not transparency:
+        image = pygame.image.load(filename).convert()
+    else:
+        image = pygame.image.load(filename).convert_alpha()
     image_width, useless = image.get_size()
     tile_table = []
 
@@ -38,6 +41,12 @@ def draw_map(screen, tile_table, map, shift):
                 player_pos = [y[0]*50, x*50]
             screen.blit(tile_table[int(y[1])], (y[0]*50 + shift[0], x*50 + shift[1]))
     return player_pos
+
+def get_map_size(map):
+    height = size(map)
+    width = len(map[0])
+
+    return (width, height)
 
 ## Fonction permettant de vérifier si la map donnée est valide
 ## IN:
@@ -70,6 +79,11 @@ def check_map(map):
         return 1
     return 0
 
+def to_map(map_str):
+    map = map_str.split('\n')
+
+    return(map)
+
 ## Fonction contenant la boucle de jeu
 ## IN:
 ## screen:          écran sur lequel on affiche nos différentes images
@@ -77,21 +91,22 @@ def check_map(map):
 ## OUT:
 ## False:           il y'a eu une erreur, ou la fenêtre a été fermée
 ## True:            le niveau a été réussi
-def game(screen):
+def game(screen, path):
     screen.fill((255, 255, 255))
 
     shift = (100, 100)
-
+    
     run = True
 
-    map = open("map.txt", 'r').read().split('\n')
+    map = open(path, 'r').read().split('\n')
     if (check_map(map)):
         run = False
+    mapsize = get_map_size(map)
     
     last_moved = pygame.time.get_ticks()
 
-    map_table = load_tiles("Tiles.png", 50, 50)
-    player_table = load_tiles("Perso.png", 50, 50)
+    map_table = load_tiles("sprites/Tiles.png", 50, 50)
+    player_table = load_tiles("sprites/Perso.png", 50, 50)
 
     player_pos = draw_map(screen, map_table, map, (100, 100))
 
@@ -99,19 +114,19 @@ def game(screen):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
-        
+
         keys = pygame.key.get_pressed()
         if pygame.time.get_ticks() - last_moved >= 250:
-            if (keys[pygame.K_RIGHT] and map[int(player_pos[1] / 50)][int(player_pos[0] / 50 + 1)] != '2'):
+            if keys[pygame.K_RIGHT] and player_pos[0] / 50 + 1 != mapsize[0] and map[int(player_pos[1] / 50)][int(player_pos[0] / 50 + 1)] != '2':
                 player_pos[0] += 50
                 last_moved = pygame.time.get_ticks()
-            elif (keys[pygame.K_LEFT] and map[int(player_pos[1] / 50)][int(player_pos[0] / 50 - 1)] != '2'):
+            elif keys[pygame.K_LEFT] and player_pos[0] / 50 - 1 != -1 and map[int(player_pos[1] / 50)][int(player_pos[0] / 50 - 1)] != '2':
                 player_pos[0] -= 50
                 last_moved = pygame.time.get_ticks()
-            elif (keys[pygame.K_DOWN] and map[int(player_pos[1] / 50 + 1)][int(player_pos[0] / 50)] != '2'):
+            elif keys[pygame.K_DOWN] and player_pos[1] / 50 + 1 != mapsize[1] and map[int(player_pos[1] / 50 + 1)][int(player_pos[0] / 50)] != '2':
                 player_pos[1] += 50
                 last_moved = pygame.time.get_ticks()
-            elif (keys[pygame.K_UP] and map[int(player_pos[1] / 50 - 1)][int(player_pos[0] / 50)] != '2'):
+            elif keys[pygame.K_UP] and player_pos[1] / 50 - 1 != -1 and map[int(player_pos[1] / 50 - 1)][int(player_pos[0] / 50)] != '2':
                 player_pos[1] -= 50
                 last_moved = pygame.time.get_ticks()
 

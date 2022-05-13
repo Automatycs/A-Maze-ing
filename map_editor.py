@@ -1,6 +1,11 @@
+import string
 import pygame
 import pygame.locals
+from requests import session
 import jeu
+import orm
+import models
+from numpy import size
 
 def to_string(array):
     string = ""
@@ -22,73 +27,116 @@ def to_string(array):
 ## OUT:
 ## False:           il y'a eu une erreur, ou la fenêtre a été fermée
 ## True:            l'utilisateur à terminée sa map
-def map_editor(screen, map, map_size):
+def map_editor(screen, session, map, new_map=False):
     screen.fill((255, 255, 255))
 
-    file = open("map.txt", "r+")
+    tiles = orm.get_tiles(session)
+    tiles_size = size(tiles)
+    selected = 0
+
+    layout = jeu.to_map(map.map_layout)
+    map_size = jeu.get_map_size(layout)
+
+    my_font = pygame.font.SysFont('arial', 70)
 
     mouse = None
     pos = (0, 0)
 
-    selected = ''
+    delay = pygame.time.get_ticks()
 
-    butt_set = jeu.load_tiles("Boutton_Créer.jpg", 600, 100)
-    select_set = jeu.load_tiles("Select.png", 50, 50)
-    tile_set = jeu.load_tiles("Tiles.png", 50, 50)
+    name_selected = False
+
+
+    name_text = my_font.render("Nom:", False, (0, 0, 0))
+    input_tile = jeu.load_tiles("sprites/Input_Space.png", 300, 100)
+    input_text = map.map_name
+    input_surface = my_font.render(input_text, False, (0, 0, 0))
+
+    r_arrow = jeu.load_tiles("./sprites/Arrow_Right.png", 100, 100, True)
+    l_arrow = jeu.load_tiles("./sprites/Arrow_Left.png", 100, 100, True)
+    butt_set = jeu.load_tiles("sprites/Boutton_Créer.jpg", 600, 100)
+    
+    tile_set = []
+
+    for row in tiles:
+        print(row.tile_name)
+        tile_set.append(jeu.load_tiles(row.tile_image, 50, 50)[0])
+
+    tyle_name = my_font.render(tiles[selected].tile_name, False, (0, 0, 0))
 
     run = True
-
-    shift = (100, 100)
 
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
+            if event.type == pygame.KEYDOWN:
+                if name_selected:
+                    if event.key == pygame.K_BACKSPACE:
+                        input_text = input_text[:-1]
+                    else:
+                        input_text += event.unicode
+                    input_surface = my_font.render(input_text, False, (0, 0, 0))
+
         
         mouse = pygame.mouse.get_pressed()
         pos = pygame.mouse.get_pos()
 
-        if (mouse[0]):
-            if (pos[0] >= 50 and pos[0] <= 100 and pos[1] >= 25 and pos[1] <= 75):
-                selected = '0'
-            elif (pos[0] >= 150 and pos[0] <= 200 and pos[1] >= 25 and pos[1] <= 75):
-                selected = '1'
-            elif (pos[0] >= 250 and pos[0] <= 300 and pos[1] >= 25 and pos[1] <= 75):
-                selected = '2'
-            elif (pos[0] >= 350 and pos[0] <= 400 and pos[1] >= 25 and pos[1] <= 75):
-                selected = '3'
+        if (mouse[0] and pygame.time.get_ticks() - delay >= 250):
+            delay = pygame.time.get_ticks()
+            if (pos[0] >= 850 and pos[0] <= 1100 and pos[1] >= 0 and pos[1] <= 100):
+                name_selected = True
             elif (pos[0] >= 0 and pos[0] <= 1920 and pos[1] >= 0 and pos[1] <= 100):
-                selected = ''
-        
-        if pos[0] >= 1320 and pos[0] <= 1920 and pos[1] >= 0 and pos[1] <= 100:
-            if mouse[0] and not jeu.check_map(map):
-                file.truncate(0)
-                file.write(to_string(map))
-                file.close
+                name_selected = False
+            if pos[0] >= 10 and pos[0] <= 110 and pos[1] >= 0 and pos[1] <= 100:
+                selected -= 1
+                if selected == -1:
+                    selected = tiles_size - 1
+            if pos[0] >= 510 and pos[0] <= 610 and pos[1] >= 0 and pos[1] <= 100:
+                selected += 1
+                if selected == tiles_size:
+                    selected = 0
+            if pos[0] >= 1320 and pos[0] <= 1920 and pos[1] >= 0 and pos[1] <= 100 and input_text != "":
+                map.map_layout = to_string(layout)
+                if new_map:
+                    orm.create_map(session, input_text, map.map_creator, map.map_layout)
+                else:
+                    orm.update_map(session, map)
                 return False
+            tyle_name = my_font.render(tiles[selected].tile_name, False, (0, 0, 0))
+        
+        screen.fill((255, 255, 255))
+
+        if pos[0] >= 1320 and pos[0] <= 1920 and pos[1] >= 0 and pos[1] <= 100:
             screen.blit(butt_set[1], (1320, 0))
         else:
             screen.blit(butt_set[0], (1320, 0))
+        if pos[0] >= 10 and pos[0] <= 110 and pos[1] >= 0 and pos[1] <= 100:
+            screen.blit(l_arrow[1], (10, 0))
+        else:
+            screen.blit(l_arrow[0], (10, 0))
+        if pos[0] >= 510 and pos[0] <= 610 and pos[1] >= 0 and pos[1] <= 100:
+            screen.blit(r_arrow[1], (510, 0))
+        else:
+            screen.blit(r_arrow[0], (510, 0))
 
-        screen.blit(tile_set[0], (50, 25))
-        screen.blit(tile_set[1], (150, 25))
-        screen.blit(tile_set[2], (250, 25))
-        screen.blit(tile_set[3], (350, 25))
+        screen.blit(tyle_name, (210, 10))
+        screen.blit(tile_set[selected], (135, 25))
 
-        if selected == '0':
-            screen.blit(select_set[0], (50, 25))
-        if selected == '1':
-            screen.blit(select_set[1], (150, 25))
-        if selected == '2':
-            screen.blit(select_set[2], (250, 25))
-        if selected == '3':
-            screen.blit(select_set[3], (350, 25))
+        screen.blit(name_text, (650, 10))
+        if name_selected:
+            screen.blit(input_tile[1], (850, 0))
+        else:
+            screen.blit(input_tile[0], (850, 0))
+        screen.blit(input_surface, (860, 10))
 
-        if selected != '':
-            if mouse[0] and pos[0] >= 100  and pos[1] >= 100 and pos[0] <= 100 + map_size[0] * 50 and pos[1] <= 100 + map_size[1] * 50:
-                map[int((pos[1] - 100) / 50)][int((pos[0] - 100) / 50)] = selected
-
-        jeu.draw_map(screen, tile_set, map, (100, 100))
+    
+        if mouse[0] and pos[0] >= 100  and pos[1] >= 100 and pos[0] < 100 + map_size[0] * 50 and pos[1] < 100 + map_size[1] * 50:
+            tmp = list(layout[int((pos[1] - 100) / 50)])
+            tmp[int((pos[0] - 100) / 50)] = str(selected)
+            layout[int((pos[1] - 100) / 50)] = "".join(tmp)
+        
+        jeu.draw_map(screen, tile_set, layout, (100, 100))
 
         pygame.display.flip()
     return False
