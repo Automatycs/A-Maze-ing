@@ -31,14 +31,13 @@ def menu(screen, session,  name="John Doe"):
         mouse = pygame.mouse.get_pressed()
         if pos[0] >= 740 and pos[1] >= 350 and pos[0] <= 1340 and pos[1] <= 450:
             if mouse[0]:
-                select_map.select_map(screen)
-                run = jeu.game(screen, "./maps/abc.txt")
+                select_map.select_map(screen, session, name, True)
             screen.blit(butt_play[1], (740, 350))
         else:
             screen.blit(butt_play[0], (740, 350))
         if pos[0] >= 740 and pos[1] >= 550 and pos[0] <= 1340 and pos[1] <= 650:
             if mouse[0]:
-                run = select_map.select_map_edit(screen, session, name)
+                run = select_map.select_map(screen, session, name)
             screen.blit(butt_create[1], (740, 550))
         else:
             screen.blit(butt_create[0], (740, 550))
