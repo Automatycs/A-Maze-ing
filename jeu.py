@@ -3,6 +3,7 @@ from numpy import size
 import pygame
 import pygame.locals
 import orm
+import astar
 
 ## Fonction permettant de créer une TileMap à partir d'une image
 ## IN:
@@ -38,7 +39,7 @@ def draw_map(screen, tile_table, map, shift):
 
     for x, row in enumerate(map):
         for y in enumerate(row):
-            if int(y[1]) == 0:
+            if int(y[1]) == 1:
                 player_pos = [y[0]*50, x*50]
             screen.blit(tile_table[int(y[1])], (y[0]*50 + shift[0], x*50 + shift[1]))
     return player_pos
@@ -48,6 +49,18 @@ def get_map_size(map):
     width = len(map[0])
 
     return (width, height)
+
+def get_exit(map):
+    for x, row in enumerate(map):
+        for y in enumerate(row):
+            if int(y[1]) == 2:
+                return (x, y[0])
+
+def get_entry(map):
+    for x, row in enumerate(map):
+        for y in enumerate(row):
+            if int(y[1]) == 1:
+                return (x, y[0])
 
 ## Fonction permettant de vérifier si la map donnée est valide
 ## IN:
@@ -100,8 +113,17 @@ def game(screen, session, map):
     run = True
 
     layout = to_map(map.map_layout)
-    mapsize = get_map_size(layout)
-    
+
+    print(layout)
+
+    path = astar.astar(layout, get_entry(layout), get_exit(layout))
+
+
+    pouet_size = size(path) / 2
+    pouet = 0
+    print(path)
+    print(pouet_size)
+
     last_moved = pygame.time.get_ticks()
 
     map_table = []
@@ -113,33 +135,23 @@ def game(screen, session, map):
 
     player_table = load_tiles("sprites/Perso.png", 50, 50)
 
-    player_pos = draw_map(screen, map_table, layout, (100, 100))
+    player_pos = draw_map(screen, map_table, to_map(map.map_layout), (100, 100))
 
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
 
-        keys = pygame.key.get_pressed()
-        if pygame.time.get_ticks() - last_moved >= 250:
-            if keys[pygame.K_RIGHT] and player_pos[0] / 50 + 1 != mapsize[0] and layout[int(player_pos[1] / 50)][int(player_pos[0] / 50 + 1)] != '0':
-                player_pos[0] += 50
-                last_moved = pygame.time.get_ticks()
-            elif keys[pygame.K_LEFT] and player_pos[0] / 50 - 1 != -1 and layout[int(player_pos[1] / 50)][int(player_pos[0] / 50 - 1)] != '0':
-                player_pos[0] -= 50
-                last_moved = pygame.time.get_ticks()
-            elif keys[pygame.K_DOWN] and player_pos[1] / 50 + 1 != mapsize[1] and layout[int(player_pos[1] / 50 + 1)][int(player_pos[0] / 50)] != '0':
-                player_pos[1] += 50
-                last_moved = pygame.time.get_ticks()
-            elif keys[pygame.K_UP] and player_pos[1] / 50 - 1 != -1 and layout[int(player_pos[1] / 50 - 1)][int(player_pos[0] / 50)] != '0':
-                player_pos[1] -= 50
-                last_moved = pygame.time.get_ticks()
-
+        if pygame.time.get_ticks() - last_moved >= 250 and pouet != pouet_size:
+            last_moved = pygame.time.get_ticks()
+            player_pos = (path[pouet][1] * 50, path[pouet][0] * 50)
+            pouet += 1
+        
         if layout[int(player_pos[1] / 50)][int(player_pos[0] / 50)] == '2':
             run = False
             print("VICTOIRE")
 
-        draw_map(screen, map_table, layout, shift)
+        draw_map(screen, map_table, to_map(map.map_layout), shift)
         screen.blit(player_table[0], (player_pos[0] + shift[0], player_pos[1] + shift[1]))
         pygame.display.flip()
     return True
