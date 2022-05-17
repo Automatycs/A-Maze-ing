@@ -114,10 +114,11 @@ def game(screen, session, map):
 
     layout = to_map(map.map_layout)
 
-    print(layout)
-
     path = astar.astar(layout, get_entry(layout), get_exit(layout))
 
+    if path == None:
+        orm.create_test(session, map, False)
+        run = False
 
     pouet_size = size(path) / 2
     pouet = 0
@@ -147,7 +148,8 @@ def game(screen, session, map):
             player_pos = (path[pouet][1] * 50, path[pouet][0] * 50)
             pouet += 1
         
-        if layout[int(player_pos[1] / 50)][int(player_pos[0] / 50)] == '2':
+        if to_map(map.map_layout)[int(player_pos[1] / 50)][int(player_pos[0] / 50)] == '2':
+            orm.create_test(session, map, True)
             run = False
             print("VICTOIRE")
 

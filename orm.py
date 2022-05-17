@@ -30,10 +30,8 @@ def create_map(session, name, creator, layout):
         .one_or_none()
     )
     if map is not None:
-        print("zlbah")
         return
     else:
-        print("hallo")
         map = models.Map()
     
     map.map_name = name
@@ -56,4 +54,14 @@ def update_map(session, new_map):
         return
     
     session.query(models.Map).filter(models.Map.map_id == new_map.map_id).update({'map_name': new_map.map_name, 'map_layout': new_map.map_layout, 'map_update': sqlalchemy.func.now()})
+    session.commit()
+
+def create_test(session, map, result):
+    test = models.Test()
+
+    test.test_result = result
+    test.test_date = sqlalchemy.func.now()
+    test.map_id = map.map_id
+
+    session.add(test)
     session.commit()
